@@ -1,0 +1,70 @@
+﻿<!DOCTYPE html>
+
+{% extends "app/layout.html" %}
+
+{% load staticfiles %}
+
+{% block content %}
+
+<h2>{{ title }}</h2>
+
+{% if form != None %}
+    
+    <br><h3>Введите указанные данные для того чтобы оставить отзыв.</h3><br>
+    <div>
+        <form method="post">
+        {% csrf_token %}
+            <label for="{{ form.name.id_for_label }}">{{ form.name.label }}:</label>
+                {{ form.name }}<br>
+            <label for="{{ form.rating.id_for_label }}">{{ form.rating.label }}:</label>
+                {{ form.rating }}<br>
+            <label for="{{ form.type.id_for_label }}">{{ form.type.label }}:</label>
+                {{ form.type }}<br>
+            <label for="{{ form.message.id_for_label }}">{{ form.message.label }}:</label>
+                {{ form.message }}<br>
+            <label for="{{ form.notice.id_for_label }}">{{ form.notice.label }}:</label>
+                {{ form.notice }}<br>
+            <label for="{{ form.email.id_for_label }}">{{ form.email.label }}:</label>
+                {{ form.email }}<br>
+            
+            <button id="b1" type="submit">
+                Отправить
+            </button>
+        </form>
+    </div>
+
+{% else %}
+    <br><h3>Благодарим за предоставленный отзыв!</h3>
+    <h4>Вы сообщили нам следующую информацию:</h4>
+    <ul>
+        <li><span>Имя:</span> {{ data.name }}</li>
+        <li><span>Оценка:</span> {{ data.rating }}</li>
+        <li><span>Тип обращения:</span> {{ data.type }}</li>
+        <li><span>Ваш отзыв:</span> {{ data.message }}</li>
+        <li><span>Желаете получить ответ на почту:</span> {{ data.notice }}</li>
+        <li><span>Ваш e-mail:</span> {{ data.email }}</li>
+    </ul>
+{% endif %}
+
+<script>
+    function b1_point() { $('#b1').css('color', 'green'); }
+    function b1_unpoint() { $('#b1').css('color', 'black'); }
+    function m1_focus() { $('#id_message').css('background-color', 'Gainsboro'); }
+    function m1_blur() { $('#id_message').css('background-color', 'white'); }
+    function name_focus() { $('#id_name').css('background-color', 'Gainsboro'); }
+    function name_blur() { $('#id_name').css('background-color', 'white'); }
+    function email_focus() { $('#id_email').css('background-color', 'Gainsboro'); }
+    function email_blur() { $('#id_email').css('background-color', 'white'); }
+
+    $('#b1').mouseover(b1_point);
+    $('#b1').mouseout(b1_unpoint);
+    $('#id_message').focus(m1_focus);
+    $('#id_message').blur(m1_blur);
+    $('#id_name').focus(name_focus);
+    $('#id_name').blur(name_blur);
+    $('#id_email').focus(email_focus);
+    $('#id_email').blur(email_blur);
+
+</script>
+
+{% endblock %}
