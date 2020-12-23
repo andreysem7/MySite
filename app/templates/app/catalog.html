@@ -1,0 +1,43 @@
+﻿{% extends "app/layout.html" %}
+
+{% load static %}
+{% block title %}
+    {% if category %}{{ category.name }}{% else %}Товары{% endif %}
+{% endblock %}
+{% block content %}
+    <div id="sidebar">
+        <h3>Категории</h3>
+        <ul>
+            <li {% if not category %} class="selected" {% endif %}>
+                <a href="{% url 'catalog' %}">Все категории</a>
+            </li>
+            {% for c in categories %}
+                <li {% if category.slug == c.slug %} class="selected"{% endif %}>
+                    <a href="{{ c.get_absolute_url }}">{{ c.name }}</a>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <table class="table table-striped">
+    <h1 id="Centered">{% if category %}{{ category.name }}{% else %}Товары{% endif %}</h1>
+    <hr>
+      <tr>
+        <th>Изображение товара</th>
+        <th>Название товара</th> 
+        <th>Цена</th>
+        
+      </tr>
+      {% for product in products %}
+      <tr>
+        <td scope="row"><a href="{{ product.get_absolute_url }}">
+                    <img height="200" width="150" src="{{ product.image.url }}">
+                </a></td>
+        <td><a href="{{ product.get_absolute_url }}">{{ product.name }}</a></td>
+        <td>{{ product.price }} руб.</td>
+      </tr>
+      {% endfor %}
+
+    </table>
+
+{% endblock %}

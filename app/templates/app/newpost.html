@@ -1,12 +1,20 @@
 ﻿{% extends "app/layout.html" %}
 
+{% load staticfiles %}
+
 {% block content %}
 
-<h3>Добавить статью</h3>
+
+{% if user.is_superuser %}
+<h3 id="Centered">Добавить новость</h3>
 <form method="POST" enctype="multipart/form-data"> {% csrf_token %}
 <div>
     {{ blogform.as_p }}
-    <button type="submit" class="save btn btn-default"> Сохранить статью </button>
+    <button type="submit" class="save btn btn-default"> Сохранить новость </button>
 </div>
 </form>
+{% else %}
+    <img src="{% static 'app/images/youshouldnot1.jpg'%}" width="1150" height="500" align="middle">
+{% endif %}
+
 {% endblock %}

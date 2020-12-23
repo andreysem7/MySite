@@ -6,15 +6,15 @@
 
 {% block content %}
 
-<h2>Регистрация пользователя</h2>
+<h2 id="Centered">Регистрация пользователя</h2>
 
-<form method="POST" > {% csrf_token %}
+<form method="POST"> {% csrf_token %}
 
 <div>
 
 {{ regform.as_p}}
 
-<button type="submit" class="save btn btn-default" > Зарегистрировать </button>
+<button id="Centered" type="submit" class="save btn btn-default" > Зарегистрировать </button>
 
 </div>
 

@@ -3,28 +3,77 @@ Definition of views.
 """
 
 from datetime import datetime
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404, reverse
+from django.views.decorators.http import require_POST
 from django.http import HttpRequest
 from django.contrib.auth.forms import UserCreationForm
-from .forms import FeedbackForm
+
+from django.utils.decorators import method_decorator
+from django.contrib.auth.decorators import login_required
+
+from django.views.generic import CreateView, ListView, UpdateView, FormView
+
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
+
 
 from django.db import models
-from .models import Blog, Comment
+from .models import Blog, Comment, Category, Product, OrderItem, Order
 
 from .forms import CommentForm, BlogForm # использование формы ввода комментария
+from .forms import CartAddProductForm, OrderCreateForm
+from .cart import Cart
+
 
 
 def home(request):
     """Renders the home page."""
+    posts = Blog.objects.all()[:3] # запрос на выбор 3 статей блога из модели
+
     assert isinstance(request, HttpRequest)
     return render(
         request,
         'app/index.html',
         {
             'title':'Домашняя страница',
+            'posts': posts,
             'year':datetime.now().year,
         }
     )
+
+
+
+@login_required
+def account(request):
+    my_orders = Order.objects.filter(user=request.user)
+
+    return render(request, "app/myorders.html",
+                  {"my_orders": my_orders,
+                   'title':'Мои заказы',
+                   'year':datetime.now().year,})
+
+
+
+@login_required
+def accountorder(request, param):
+    myorder = OrderItem.objects.get(id=param) # запрос на выбор конкретной статьи по параметру
+
+    if (request.GET.get('DeleteButton')):
+        Order.objects.filter(id = request.GET.get('DeleteButton')).delete()
+        return redirect('/')
+
+    assert isinstance(request, HttpRequest)
+    return render(
+        request,
+        'app/myorder.html',
+            {
+            'myorder': myorder, # передача конкретной статьи в шаблон веб-страницы
+            'title':'Мой заказ',
+            'year':datetime.now().year,
+            }
+            )
+
+
 
 def contact(request):
     """Renders the contact page."""
@@ -48,55 +97,6 @@ def about(request):
         {
             'title':'О нас',
             'year':datetime.now().year,
-        }
-    )
-
-def links (request):
-    """ """
-    assert isinstance(request, HttpRequest)
-    return render(
-        request,
-        'app/links.html',
-        {
-            'title':'Полезные ресурсы',
-            'message':'Здесь содержаться ссылки на полезные сайты.',
-            'year':datetime.now().year,
-        }
-    )
-
-def pool (request):
-    """ """
-    assert isinstance(request, HttpRequest)
-    
-    data = None
-    rating = {'1': 'Плохо', '2': 'Нормально', '3': 'Хорошо'}
-    type = {'1': 'Отзыв', '2': 'Предложение', '3': 'Претензия'}
-
-    if request.method == 'POST':
-        form = FeedbackForm(request.POST)
-        if form.is_valid():
-            data = dict()
-            data['name'] = form.cleaned_data['name']
-            data['rating'] = rating[form.cleaned_data['rating']]
-            data['type'] = type[form.cleaned_data['type']]
-            data['message'] = form.cleaned_data['message']
-            if(form.cleaned_data['notice'] == True):
-                data['notice'] = 'Да'
-            else:
-                data['notice'] = 'Нет'
-            data['email'] = form.cleaned_data['email']
-            form = None
-    else:
-        form = FeedbackForm()
-
-    return render(
-        request,
-        'app/pool.html',
-        {
-            'title':'Обратная связь',
-            'form':form,
-            'year':datetime.now().year,
-            'data':data
         }
     )
 
@@ -124,6 +124,7 @@ def registration(request):
     'app/registration.html',
         {
         'regform': regform, # передача формы в шаблон веб-страницы
+        'title':'Регистрация',
         'year':datetime.now().year,
         }
     )
@@ -137,7 +138,7 @@ def blog(request):
         request,
         'app/blog.html',
            {
-            'title':'Блог',
+            'title':'Новости',
             'posts': posts, # передача списка статей в шаблон веб-страницы
             'year':datetime.now().year,
             }
@@ -183,6 +184,7 @@ def newpost(request):
         if blogform.is_valid():
             blog_f = blogform.save(commit=False)
             blog_f.posted = datetime.now()
+            blog_f.author = request.user 
 
             blog_f.save()
 
@@ -196,20 +198,116 @@ def newpost(request):
         request,
         'app/newpost.html',
             {
+            'title':'Блог',
             'blogform': blogform,
             'year':datetime.now().year,
             }
             )
 
-def videopost(request):
-    """Renders the videopost page."""
+def catalog(request, category_slug=None):
+    """Renders the catalog page."""
+    cart = Cart(request)
+    category = None
+    categories = Category.objects.all()
+    products = Product.objects.filter(available=True)
+
+    if category_slug:
+        category = get_object_or_404(Category, slug=category_slug)
+        products = products.filter(category=category)
+
+    return render(request,
+                  'app/catalog.html',
+                  {'category': category,
+                   'categories': categories,
+                   'cart': cart,
+                   'products': products,
+                   'title':'Каталог',
+                   'message':'Здесь представлен имеющийся товар',
+                   'year':datetime.now().year,
+                   })
+
+def product(request, id, slug):
+    """Renders the product page."""
+    cart = Cart(request)
+    product = get_object_or_404(Product,
+                                id=id,
+                                slug=slug,
+                                available=True)
+
+    cart_product_form = CartAddProductForm()
+
     assert isinstance(request, HttpRequest)
     return render(
         request,
-        'app/videopost.html',
-        {
-            'title':'Раздел видео',
-            'message':'Страница с коллекцией видео.',
+        'app/product.html',
+            {
+            'product': product, # передача конкрет в шаблон веб-страницы
+            'cart_product_form': cart_product_form,
+            'title':'Товар',
+            'cart': cart,
             'year':datetime.now().year,
-        }
-    )
+            }
+            )
+
+@require_POST
+def cart_add(request, product_id):
+    #Это представление для добавления продуктов в корзину или обновления количества для существующих продуктов.
+
+    cart = Cart(request)
+    product = get_object_or_404(Product, id=product_id)
+    form = CartAddProductForm(request.POST)
+    if form.is_valid():
+       cd = form.cleaned_data
+       cart.add(product=product,
+                quantity=cd['quantity'],
+                update_quantity=cd['update'])
+    return redirect('cart_detail')
+
+def cart_remove(request, product_id):
+    #Представление cart_remove получает id продукта в качестве параметра. Мы извлекаем экземпляр продукта с заданным id и удаляем продукт из корзины.
+    cart = Cart(request)
+    product = get_object_or_404(Product, id=product_id)
+    cart.remove(product)
+    return redirect('cart_detail')
+
+def cart_detail(request):
+    #Представление для отображения корзины и ее товаров.
+    cart = Cart(request)
+    for item in cart:
+        item['update_quantity_form'] = CartAddProductForm(
+                                        initial={
+                                            'quantity': item['quantity'],
+                                            'update': True
+                                        })
+    return render(request, 'app/cart.html', {'cart': cart, 'title':'Корзина', 'year':datetime.now().year} )
+
+def order_create(request):
+    #В представлении order_create мы получаем текущую корзину из сесссии с cart = Cart(request)
+    cart = Cart(request)
+    if request.method == 'POST':
+        #POST request : Проверяет валидность введенных данных. 
+
+        form = OrderCreateForm(request.POST)
+        if form.is_valid():
+        #Если данные являются допустимыми, то для создания нового экземпляра заказа будет использоваться order = form.save().
+            order = form.save()
+            order.user = request.user
+            order.save()
+            #Затем мы сохраняем его в базу данных, а затем храним в переменной order. 
+            for item in cart:
+                #После создания заказа мы перейдем по товарам корзины и создадим OrderItem для каждого из них.
+                OrderItem.objects.create(order=order,
+                                         product=item['product'],
+                                         price=item['price'],
+                                         quantity=item['quantity'])
+            # очистка корзины
+            cart.clear()
+            return render(request, 'app/created.html',
+                          {'order': order})
+    else:
+        form = OrderCreateForm
+        #GET request : Создается экземпляр формы OrderCreateForm и отображается шаблон app/createorder.html
+    
+    assert isinstance(request, HttpRequest)
+    return render(request, 'app/createorder.html',
+                  {'cart': cart, 'form': form, 'year':datetime.now().year})

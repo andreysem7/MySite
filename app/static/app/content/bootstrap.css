@@ -26,8 +26,6 @@ aside,
 details,
 figcaption,
 figure,
-footer,
-header,
 hgroup,
 main,
 nav,
@@ -35,6 +33,11 @@ section,
 summary {
   display: block;
 }
+
+header {
+    display: block;
+}
+
 
 audio,
 canvas,
@@ -4045,9 +4048,9 @@ textarea.input-group-sm > .input-group-btn > .btn {
   display: table;
   content: " ";
 }
-
+navbar-collapse collapse
 .navbar:after {
-  clear: both;
+    clear: both;
 }
 
 @media (min-width: 768px) {
@@ -4280,7 +4283,7 @@ textarea.input-group-sm > .input-group-btn > .btn {
     float: left;
   }
   .navbar-nav > li > a {
-    padding-top: 15px;
+    padding-top: 115px;
     padding-bottom: 15px;
   }
 }
@@ -4290,6 +4293,7 @@ textarea.input-group-sm > .input-group-btn > .btn {
     float: left !important;
   }
   .navbar-right {
+    margin-top: 100px;
     float: right !important;
   }
 }

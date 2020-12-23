@@ -1,21 +1,37 @@
 ﻿{% extends "app/layout.html" %}
 
+{% load staticfiles %}
+
 {% block content %}
 
-<h2>{{ title }}.</h2>
+<style>
+
+    .pic {border: 2px solid #808080}
+</style>
+
+<h2 id="Centered">{{ title }}</h2>
+
 <h3>{{ message }}</h3>
 
-<address>
+<img class="pic" align="right" hspace="55" src="{% static 'app/content/images/map.png'%}" alt="Карта" height="250" width="400">
+
+
     <b>Юридический адрес:</b><br />
-    181350, г. Остров,<br />
-    ул.Пригородная, д.18<br />
+    <p>181350, г. Остров,<br />
+    ул.Пригородная, д.18<br /></p>
     <br />
     <abbr title="Phone">Телефон (с мобильного):</abbr>
-    +7811-523-2426
-    <br />
-    <abbr title="Phone">Телефон (с домашнего):</abbr>
-    32-426
+    <p>+7811-523-2426</p>
 
-</address>
+    <abbr title="Phone">Телефон (с домашнего):</abbr>
+    <p>32-426</p>
+    <br />
+
+    <b>Контактные данные разработчика:</b><br />
+    Семёнов А.<br />
+    <abbr title="Phone">Телефон:</abbr><br />
+    +79532333984
+    <br />
+    
 
 {% endblock %}

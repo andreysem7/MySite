@@ -1,17 +1,30 @@
 ﻿{% extends "app/layout.html" %}
 
+{% load staticfiles %}
+
 {% block content %}
 
-<p><a href="{% url 'blog' %}"> Назад </a></p>
-<h2> {{post_1.title}} </h2>
+<p id="backbuttton"><a href="{% url 'blog' %}"> Назад </a></p>
 
-{% if post_1.image and post_1.image.url != '/media/temp.jpg' %}
-    <img src="{{ post_1.image.url }}" alt="Картинка" width="300" height="200"/>
-{% endif %}
+<div class="newspost">
+    <table class="table table-striped">
+        <h2 id="Centered"> {{post_1.title}} </h2>
+        <tr>
+        <th></th>
+        <th></th>
+        </tr>
+        
+        <tr>
+           <td> {% if post_1.image and post_1.image.url != '/media/temp.png' %}
+            <img id="NewsIMG" src="{{ post_1.image.url }}" alt="Картинка" width="300" height="200"/>
+            {% endif %} </td>
 
-{% autoescape off %}
-<p> {{post_1.content|linebreaksbr}} </p>      {# вывод текста по абзацам #}
-{% endautoescape %}
+        {% autoescape off %}
+        <td><p> {{post_1.content|linebreaksbr}} </p></td>      {# вывод текста по абзацам #}
+        {% endautoescape %}
+        </tr>
+    </table>
+</div>
 
 {% if user.is_authenticated %}
 
